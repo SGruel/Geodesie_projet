@@ -22,24 +22,34 @@ Etapes :
 """
 
 class Pos():
+    """
+    objet Pos construit a partir d'un fichier .pos
+    """
     def __init__(self, filename):
         self.name = filename[:-4]
         data = self.parse()
+        #XYZ de la ref pos
         self.X_o = data[0]
         self.Y_o = data[1]
         self.Z_o = data[2]
+        #XYZ du point courant
         self.X = data[3]
         self.Y = data[4]
         self.Z = data[5]
+        #ecarts types fournis dans le .pos
         self.sdx = data[6]
         self.sdy = data[7]
         self.sdz = data[8]
         self.sdxy = data[9]
         self.sdyz = data[10]
         self.sdzx = data[11]
+        #booleen indiquant si le point a un parent du RGP
         self.parent = self.compute_parent()
         
     def parse(self):
+        """
+        parsing du .pos pour completer les champs de l'objet Pos
+        """
         data = []
         with open(str(self.name)+'.pos', 'r') as f:
             lines = f.readlines()
@@ -70,6 +80,12 @@ class Pos():
         return data
         
     def compute_parent(self):
+        """
+        determine si le point a un parent membre du RGP
+        renvoie un booleen
+        True = a un parent du RGP
+        False = non
+        """
         if '_' in self.name:
             return True
         else:
@@ -80,6 +96,10 @@ class Pos():
         return ch
 
 def parse_chem(filename):
+    """
+    parsing du fichier txt decrivant le cheminement
+    renvoie la liste des noms de fichiers ordonnee
+    """    
     lst_ordre = []
 
     chem_d = np.genfromtxt(filename)
@@ -94,21 +114,21 @@ def parse_chem(filename):
     
 if __name__ == "__main__":
 
-    lst_pos_f = []
-    lst_Pos = []
+    lst_pos_f = [] #liste des fichiers .pos
+    lst_Pos = [] #liste d'objets Pos
+    lst_pos_ord = [] #liste des fichiers .oos ordonnee
+
     
-    
+    #Recuperation des fichiers .pos et du fichier txt de cheminement
     for element in os.listdir():
         if element.endswith('.pos'):
             lst_pos_f.append(element)
         if element.endswith('.txt'):
             cheminement = element
     
-    #print(lst_pos_f)
+    #parsing du fichier de cheminement
     lst_o = parse_chem(cheminement)
-    print(lst_o)
-    lst_pos_ord = []
-    
+
     for e in lst_o:
         for f in lst_pos_f:
             if e in f:
@@ -118,6 +138,5 @@ if __name__ == "__main__":
         pos = Pos(p)
         lst_Pos.append(pos)
         
-    
     for p in lst_Pos:
         print(p)
