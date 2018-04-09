@@ -7,7 +7,7 @@ Created on %(date)s
 
 import numpy as np
 import os
-
+import pyproj
 """
 Etapes : 
     1) recuperer le cheminement et le stocker dans un 
@@ -43,9 +43,24 @@ class Pos():
         self.sdxy = data[9]
         self.sdyz = data[10]
         self.sdzx = data[11]
+        #coord. WGS84
+        self.lat, self.lon, self.alt = self.coo_ECEF_to_LLA()
         #booleen indiquant si le point a un parent du RGP
         self.parent = self.compute_parent()
         
+        
+    def coo_ECEF_to_LLA(self):
+        ecef = pyproj.Proj(proj='geocent', ellps='WGS84', datum='WGS84')
+        lla = pyproj.Proj(proj='latlong', ellps='WGS84', datum='WGS84')
+        lon, lat, alt = pyproj.transform(ecef, lla, self.X, self.Y, self.Z, radians=True)
+        return lon*180/np.pi, lat*180/np.pi, alt
+        
+        
+    def add_to_file(self, filename):
+        with open(filename, 'a') as f:
+            f.write(str(self.name)+';'+str(self.lat)+';'+str(self.lon)+';'+str(self.alt)+'\n')
+    
+    
     def parse(self):
         """
         parsing du .pos pour completer les champs de l'objet Pos
@@ -92,7 +107,7 @@ class Pos():
             return False
     
     def __str__(self):
-        ch = self.name+' :\n  XYZ :\t'+str(self.X)+' '+str(self.Y)+' '+str(self.Z)+'\n  sd:\t'+str(self.sdx)+' '+str(self.sdy)+' '+str(self.sdz)+' '+str(self.sdxy)+' '+str(self.sdyz)+' '+str(self.sdzx)+'\n  ref :\t'+str(self.X_o)+' '+str(self.Y_o)+' '+str(self.Z_o)+'\n'
+        ch = self.name+' :\n  XYZ :\t'+str(self.X)+' '+str(self.Y)+' '+str(self.Z)+'\n  sd:\t'+str(self.sdx)+' '+str(self.sdy)+' '+str(self.sdz)+' '+str(self.sdxy)+' '+str(self.sdyz)+' '+str(self.sdzx)+'\n  ref :\t'+str(self.X_o)+' '+str(self.Y_o)+' '+str(self.Z_o)+'\n  WGS84 :\t'+str(self.lat)+' '+str(self.lon)+' '+str(self.alt)+'\n'
         return ch
 
 def parse_chem(filename):
@@ -103,7 +118,7 @@ def parse_chem(filename):
     lst_ordre = []
 
     chem_d = np.genfromtxt(filename)
-    
+    print(chem_d)
     for i in range(len(chem_d)):
         for j in range(len(chem_d[i])):
             if(int(chem_d[i][0]) != int(chem_d[i][j])):
@@ -125,7 +140,7 @@ if __name__ == "__main__":
             lst_pos_f.append(element)
         if element.endswith('.txt'):
             cheminement = element
-    
+    print(cheminement)
     #parsing du fichier de cheminement
     lst_o = parse_chem(cheminement)
 
@@ -139,4 +154,5 @@ if __name__ == "__main__":
         lst_Pos.append(pos)
         
     for p in lst_Pos:
+        p.add_to_file('coo_r.csv')
         print(p)
