@@ -38,7 +38,7 @@ def matrice_B(list_pos):
     return mat_basline
 
 
-def matrice_A(list_pos, cheminement):
+def matrice_A(list_pos):
     mat = np.identity(len(list_pos) + 24)
     j = 0
     for i in range(list_pos):
@@ -110,4 +110,10 @@ def Vnorm(A, mat_cov, B):
     plt.close()
 
 
-    
+
+def MC(list_pos):
+    A = matrice_A(list_pos)
+    B = matrice_B(list_pos)
+    mat= matrice_cov(list_pos)
+    Vnorm(A,mat,B)
+    return(xchap(A,mat,B))
