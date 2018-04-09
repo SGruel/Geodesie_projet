@@ -47,7 +47,10 @@ class Pos():
         self.lat, self.lon, self.alt = self.coo_ECEF_to_LLA()
         #booleen indiquant si le point a un parent du RGP
         self.parent = self.compute_parent()
-        
+        #coord estimée par moindres carrés
+        self.X_mc=0
+        self.Y_mc=0
+        self.Z_mc=0
         
     def coo_ECEF_to_LLA(self):
         ecef = pyproj.Proj(proj='geocent', ellps='WGS84', datum='WGS84')
@@ -58,7 +61,7 @@ class Pos():
         
     def add_to_file(self, filename):
         with open(filename, 'a') as f:
-            f.write(str(self.name)+';'+str(self.lat)+';'+str(self.lon)+';'+str(self.alt)+'\n')
+            f.write(str(self.name)+';'+str(self.X_MC)+';'+str(self.Y_MC)+';'+str(self.Z_mc)+'\n')
     
     
     def parse(self):
@@ -126,8 +129,8 @@ def parse_chem(filename):
                 
     print(lst_ordre)
     return lst_ordre
-    
-if __name__ == "__main__":
+
+def recup_pos():
 
     lst_pos_f = [] #liste des fichiers .pos
     lst_Pos = [] #liste d'objets Pos
@@ -156,3 +159,4 @@ if __name__ == "__main__":
     for p in lst_Pos:
         p.add_to_file('coo_r.csv')
         print(p)
+    return lst_Pos

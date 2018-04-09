@@ -14,4 +14,4 @@ for i in range (len(list_pos)):
     list_pos[i].Z_mc = Xchap[j]
     j+=1
     list_pos[i].add_to_file("resultats.csv")
-    
+
