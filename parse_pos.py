@@ -7,7 +7,7 @@ Created on %(date)s
 
 import numpy as np
 import os
-import pyproj
+#import pyproj
 """
 Etapes : 
     1) recuperer le cheminement et le stocker dans un 
@@ -44,24 +44,24 @@ class Pos():
         self.sdyz = data[10]
         self.sdzx = data[11]
         #coord. WGS84
-        self.lat, self.lon, self.alt = self.coo_ECEF_to_LLA()
+        #self.lat, self.lon, self.alt = self.coo_ECEF_to_LLA()
         #booleen indiquant si le point a un parent du RGP
         self.parent = self.compute_parent()
         #coord estimée par moindres carrés
-        self.X_mc=0
-        self.Y_mc=0
-        self.Z_mc=0
-        
+        self.X_MC=0
+        self.Y_MC=0
+        self.Z_MC=0
+    """    
     def coo_ECEF_to_LLA(self):
         ecef = pyproj.Proj(proj='geocent', ellps='WGS84', datum='WGS84')
         lla = pyproj.Proj(proj='latlong', ellps='WGS84', datum='WGS84')
         lon, lat, alt = pyproj.transform(ecef, lla, self.X, self.Y, self.Z, radians=True)
         return lon*180/np.pi, lat*180/np.pi, alt
-        
+    """
         
     def add_to_file(self, filename):
         with open(filename, 'a') as f:
-            f.write(str(self.name)+';'+str(self.X_MC)+';'+str(self.Y_MC)+';'+str(self.Z_mc)+'\n')
+            f.write(str(self.name)+';'+str(self.X_MC)+';'+str(self.Y_MC)+';'+str(self.Z_MC)+'\n')
     
     
     def parse(self):
@@ -110,7 +110,7 @@ class Pos():
             return False
     
     def __str__(self):
-        ch = self.name+' :\n  XYZ :\t'+str(self.X)+' '+str(self.Y)+' '+str(self.Z)+'\n  sd:\t'+str(self.sdx)+' '+str(self.sdy)+' '+str(self.sdz)+' '+str(self.sdxy)+' '+str(self.sdyz)+' '+str(self.sdzx)+'\n  ref :\t'+str(self.X_o)+' '+str(self.Y_o)+' '+str(self.Z_o)+'\n  WGS84 :\t'+str(self.lat)+' '+str(self.lon)+' '+str(self.alt)+'\n'
+        ch = self.name+' :\n  XYZ :\t'+str(self.X)+' '+str(self.Y)+' '+str(self.Z)+'\n  sd:\t'+str(self.sdx)+' '+str(self.sdy)+' '+str(self.sdz)+' '+str(self.sdxy)+' '+str(self.sdyz)+' '+str(self.sdzx)+'\n  ref :\t'+str(self.X_o)+' '+str(self.Y_o)+' '+str(self.Z_o)#+'\n  WGS84 :\t'+str(self.lat)+' '+str(self.lon)+' '+str(self.alt)+'\n'
         return ch
 
 def parse_chem(filename):
@@ -141,7 +141,7 @@ def recup_pos():
     for element in os.listdir():
         if element.endswith('.pos'):
             lst_pos_f.append(element)
-        if element.endswith('.txt'):
+        if element.endswith('chem.txt'):
             cheminement = element
     print(cheminement)
     #parsing du fichier de cheminement
