@@ -5,28 +5,31 @@ import numpy as np
 
 """
 1) lecture des points GPS 
-2) détermination de la proj minimisant l'altération linéaire
-    déterminer: la latitude moyenne
+2) determination de la proj minimisant l'alteration lineaire
+    determiner: la latitude moyenne
                 les latitudes min et max 
 
 3) affichage sur une carte avec la projection correspondante
 
 """
 
-filename_gps = 'resultat.csv'
+filename_gps = 'resultats.csv'
 
 ellip_WGS84 = ellipsoide.Ellipsoide('WGS84', 6378137.0, 6356752.314)
-# memes X0 et Y0 que le Lambert Zone... à modifier
+# memes X0 et Y0 que le Lambert Zone... a modifier
 # coo min de la boite englobante des points ?
 X0 = 600000
 Y0 = 200000
 
 class Point():
-    def __init__(self, nom, lat, lon, el):
+    def __init__(self, nom, lon, lat, el):
         self.nom = nom
         self.lat = float(lat)
         self.lon = float(lon)
         self.el = float(el)
+
+    def __str__(self):
+        return self.nom+' '+str(self.lat)+' '+str(self.lon)+' '+str(self.el)
 
 
 def lecture(filename):
@@ -61,7 +64,14 @@ def min_max(points):
 
     return (min, max)
 
-def projection(lst_points)
+def projection(lst_points, proj):
+    """
+    cette fonction dessinera la carte des points dans la projection adaptee
+    :param lst_points: liste des points
+    :param proj: projection conique conforme
+    :return:
+    """
+    pass
 
 def choix_proj_cc(lst_points):
     lat_min, lat_max = min_max(lst_points)
@@ -72,27 +82,27 @@ def choix_proj_cc(lst_points):
 
     phi0 = lat_min
     while (phi0 < lat_max):
-        d = 0.1
+        d = 0.01
         while(d < (lat_max-lat_min)/2):
-            print(phi0, phi0-d, phi0+d)
             nom = 'CC_'+str(phi0)+'_'+str(phi0-d)+'_'+str(phi0+d)
-            cc = Cone_CC.Cone_CC(nom, 0, phi0, phi0-d, phi0+d, X0, Y0, ellip_WGS84)
+            phi0_rad = phi0*np.pi/180
+            cc = Cone_CC.Cone_CC(nom, 0, phi0_rad, phi0_rad-d, phi0_rad+d, X0, Y0, ellip_WGS84)
             lst_proj_CC.append(cc)
             sum_modlin = 0
             for p in lst_points:
-                sum_modlin += cc.module_lineaire(p.lat)
-            print(sum_modlin)
+                phi_rad = p.lat*np.pi/180 #conversion en radian
+                sum_modlin += cc.module_lineaire(phi_rad)
 
             if sum_modlin < min_modlin:
                 min_modlin = sum_modlin
                 sol_cc = cc
-            d += 0.5
-        phi0 += 0.5
+            d += 0.01
+        phi0 += 0.05
 
-    print('module lineaire', min_modlin)
-    print(sol_cc)
     return sol_cc
 
 if __name__ == '__main__':
     points = lecture(filename_gps)
-    choix_proj_cc(points)
+
+    proj_cc = choix_proj_cc(points)
+    print(proj_cc)
