@@ -4,9 +4,9 @@ class Cone_CC:
     def __init__(self, nom, lambda0, phi0, phi1, phi2, X0, Y0, ellipsoide):
         self.nom = nom
         self.lambda0 = lambda0*np.pi/180
-        self.phi0 = phi0*np.pi/180
-        self.phi1 = phi1*np.pi/180
-        self.phi2 = phi2*np.pi/180
+        self.phi0 = phi0
+        self.phi1 = phi1
+        self.phi2 = phi2
         self.X0 = X0
         self.Y0 = Y0
         self.ellipsoide = ellipsoide
@@ -33,7 +33,7 @@ class Cone_CC:
         R = self.C*np.exp(-self.n*self.L_CC(phi))
         X = self.X0 + R*np.sin(self.n*(lambd - self.lambda0))
         Y = self.Y0 + self.C*np.exp(-self.n*self.L_CC(self.phi0)) - R*np.cos(self.n*(lambd - self.lambda0))
-        return np.array(X, Y)
+        return (X, Y) #modif np.array suppr.
         
     def CC_to_geog(self, X, Y):
         Ys = self.Y0 + self.C*np.exp(-self.n*self.L_CC(self.phi0))
