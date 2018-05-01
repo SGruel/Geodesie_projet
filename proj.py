@@ -19,8 +19,8 @@ filename_gps = 'resultats.csv'
 ellip_WGS84 = ellipsoide.Ellipsoide('WGS84', 6378137.0, 6356752.314)
 # memes X0 et Y0 que le Lambert Zone... a modifier
 # coo min de la boite englobante des points ?
-X0 = 200000
-Y0 = 600000
+X0 = 0
+Y0 = 0
 
 class Point():
     def __init__(self, nom, lon, lat, el):
@@ -109,7 +109,6 @@ def choix_proj_cc(lst_points):
                 sol_cc = cc
             d += deg_to_rad(0.01)
         phi0 += deg_to_rad(0.05)
-    print(min_modlin)
     return sol_cc
 
 def projeter(cc, lambd, phi):
@@ -119,6 +118,8 @@ def projeter(cc, lambd, phi):
 if __name__ == '__main__':
     points = lecture(filename_gps)
     pr = choix_proj_cc(points)
+    print('Paramètres de la projection conique conforme minimisant le module linéaire:\n','Phi0:',rad_to_deg(pr.phi0),'\n','Phi1:',rad_to_deg(pr.phi1),'\n','Phi2:',\
+          rad_to_deg(pr.phi2),'\n','X0 :',pr.X0,'Y0 :',pr.Y0,'\n', "ellipsoide de référence WGS 84")
 
     points_proj = []
     for p in points:
@@ -133,5 +134,6 @@ if __name__ == '__main__':
 
     plt.plot(x_cc, y_cc, 'b+')
     plt.axis('equal')
+    plt.title('Points GPS représentés dans la projection conique conforme optimale')
     plt.show()
 
