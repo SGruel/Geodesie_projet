@@ -22,7 +22,17 @@ X0 = 0
 Y0 = 0
 
 class Point():
+    """
+    Classe Point
+    """
     def __init__(self, nom, lon, lat, el):
+        """
+
+        :param nom: str
+        :param lon: float
+        :param lat: float
+        :param el: float
+        """
         self.nom = nom
         self.lat = float(lat)
         self.lon = float(lon)
@@ -32,10 +42,21 @@ class Point():
         return self.nom+' '+str(self.lat)+' '+str(self.lon)+' '+str(self.el)
 
     def save(self, filename):
+        """
+        Ajoute le point au fichier 'filename' en suivant les specifications du csv
+        :param filename: str
+        :return: None
+        """
         with open(filename, 'a') as f:
             f.write(self.nom+';'+str(self.lon)+';'+str(self.lat)+';'+str(self.el)+'\n')
 
 def lecture(filename):
+    """
+    Lecture d'un fichier csv,
+    Passage de coordonnées XYZ en lon, lat, alt
+    :param filename: str
+    :return: liste d'objets Points
+    """
     points = []
     with open(filename, 'r') as f:
         lines = f.readlines()
@@ -50,12 +71,24 @@ def lecture(filename):
     return points
 
 def coo_ECEF_to_LLA(X, Y, Z):
+    """
+    Conversion de coordonnees XYZ (ECEF) en LLA
+    :param X: float
+    :param Y: float
+    :param Z: float
+    :return: float,float,float
+    """
     ecef = pyproj.Proj(proj='geocent', ellps='WGS84', datum='WGS84')
     lla = pyproj.Proj(proj='latlong', ellps='WGS84', datum='WGS84')
     lon, lat, alt = pyproj.transform(ecef, lla, X, Y, Z, radians=True)
     return lon, lat, alt
 
 def min_max(points):
+    """
+    renvoie les latitudes extremes d'une liste de points
+    :param points: liste d'objets Points
+    :return:
+    """
     min = points[0].lat
     max = points[0].lat
 
@@ -68,22 +101,29 @@ def min_max(points):
 
     return (min, max)
 
-def projection(lst_points, proj):
+def deg_to_rad(deg):
     """
-    cette fonction dessinera la carte des points dans la projection adaptee
-    :param lst_points: liste des points
-    :param proj: projection conique conforme
+    Conversion de degres en radians
+    :param deg: float
     :return:
     """
-    pass
-
-def deg_to_rad(deg):
     return deg * np.pi / 180.0
 
 def rad_to_deg(rad):
+    """
+    Conversion de radians en degres
+    :param rad: float
+    :return:
+    """
     return rad * 180.0 / np.pi
 
 def choix_proj_cc(lst_points):
+    """
+    Choix d'une projection conique conforme secante adaptee
+    a un ensemble de points
+    :param lst_points: liste d'objets Points
+    :return:
+    """
     lat_min, lat_max = min_max(lst_points)
     min_altlin_moy = 99999999999999999
     sol_cc = 0
@@ -115,6 +155,12 @@ def choix_proj_cc(lst_points):
 
 
 def affiche(lst_points, cc):
+    """
+    affiche la carte 
+    :param lst_points: liste d'objets Point
+    :param cc: projection conique conforme
+    :return:
+    """
     points_proj = []
     for p in lst_points:
         points_proj.append(cc.proj_to_CC(p.lon, p.lat))
