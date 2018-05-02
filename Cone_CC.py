@@ -47,7 +47,11 @@ class Cone_CC:
     def module_lineaire(self, phi):
         r = self.ellipsoide.a/(1 - self.ellipsoide.e**2*np.sin(phi)**2)**(1/2)*np.cos(phi)
         m = self.n*self.C*np.exp(-self.n*self.L_CC(phi))/r
-        return (m - 1)*10**5
+        return (m - 1)*10**6
+
+    def alteration_lineaire(self, phi):
+        return self.module_lineaire(phi)-1
+
 
     def __str__(self):
         return str(self.nom)+'\n'+str(self.phi0*180/np.pi)+' '+str(self.phi1*180/np.pi)+' '+str(self.phi2*180/np.pi)+'\n'+str(self.X0)+', '+str(self.Y0)+'\n'

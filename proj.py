@@ -14,7 +14,6 @@ import matplotlib.pyplot as plt
 
 """
 
-filename_gps = '/Resultat/resultats.csv'
 
 ellip_WGS84 = ellipsoide.Ellipsoide('WGS84', 6378137.0, 6356752.314)
 # memes X0 et Y0 que le Lambert Zone... a modifier
@@ -23,7 +22,17 @@ X0 = 0
 Y0 = 0
 
 class Point():
+    """
+    Classe Point
+    """
     def __init__(self, nom, lon, lat, el):
+        """
+
+        :param nom: str
+        :param lon: float
+        :param lat: float
+        :param el: float
+        """
         self.nom = nom
         self.lat = float(lat)
         self.lon = float(lon)
@@ -33,10 +42,21 @@ class Point():
         return self.nom+' '+str(self.lat)+' '+str(self.lon)+' '+str(self.el)
 
     def save(self, filename):
+        """
+        Ajoute le point au fichier 'filename' en suivant les specifications du csv
+        :param filename: str
+        :return: None
+        """
         with open(filename, 'a') as f:
             f.write(self.nom+';'+str(self.lon)+';'+str(self.lat)+';'+str(self.el)+'\n')
 
 def lecture(filename):
+    """
+    Lecture d'un fichier csv,
+    Passage de coordonnées XYZ en lon, lat, alt
+    :param filename: str
+    :return: liste d'objets Points
+    """
     points = []
     with open(filename, 'r') as f:
         lines = f.readlines()
@@ -46,17 +66,29 @@ def lecture(filename):
             lon,lat,alt = coo_ECEF_to_LLA(float(l[1]), float(l[2]), float(l[3][:-1]))
 
             points.append(Point(l[0], lon, lat, alt)) #modifier selon format
-            points[-1].save('Resultats/coo_lat_lon.csv')
+            points[-1].save('coo_lat_lon.csv')
 
     return points
 
 def coo_ECEF_to_LLA(X, Y, Z):
+    """
+    Conversion de coordonnees XYZ (ECEF) en LLA
+    :param X: float
+    :param Y: float
+    :param Z: float
+    :return: float,float,float
+    """
     ecef = pyproj.Proj(proj='geocent', ellps='WGS84', datum='WGS84')
     lla = pyproj.Proj(proj='latlong', ellps='WGS84', datum='WGS84')
     lon, lat, alt = pyproj.transform(ecef, lla, X, Y, Z, radians=True)
     return lon, lat, alt
 
 def min_max(points):
+    """
+    renvoie les latitudes extremes d'une liste de points
+    :param points: liste d'objets Points
+    :return:
+    """
     min = points[0].lat
     max = points[0].lat
 
@@ -69,24 +101,31 @@ def min_max(points):
 
     return (min, max)
 
-def projection(lst_points, proj):
+def deg_to_rad(deg):
     """
-    cette fonction dessinera la carte des points dans la projection adaptee
-    :param lst_points: liste des points
-    :param proj: projection conique conforme
+    Conversion de degres en radians
+    :param deg: float
     :return:
     """
-    pass
-
-def deg_to_rad(deg):
     return deg * np.pi / 180.0
 
 def rad_to_deg(rad):
+    """
+    Conversion de radians en degres
+    :param rad: float
+    :return:
+    """
     return rad * 180.0 / np.pi
 
 def choix_proj_cc(lst_points):
+    """
+    Choix d'une projection conique conforme secante adaptee
+    a un ensemble de points
+    :param lst_points: liste d'objets Points
+    :return:
+    """
     lat_min, lat_max = min_max(lst_points)
-    min_modlin = 9999999999
+    min_altlin_moy = 99999999999999999
     sol_cc = 0
 
     lst_proj_CC = []
@@ -100,33 +139,34 @@ def choix_proj_cc(lst_points):
             cc = Cone_CC.Cone_CC(nom, 0, phi0_rad, phi0_rad-d, phi0_rad+d, X0, Y0, ellip_WGS84)
             lst_proj_CC.append(cc)
             sum_modlin = 0
+            sum_altlin = 0
             for p in lst_points:
                 phi_rad = p.lat
-                sum_modlin += cc.module_lineaire(phi_rad)**2
+                sum_altlin += np.abs(cc.alteration_lineaire(phi_rad))
+            moy_altlin = sum_altlin/len(lst_points)
 
-            if sum_modlin < min_modlin:
-                min_modlin = sum_modlin
+            if moy_altlin < min_altlin_moy:
+                min_altlin_moy = moy_altlin
                 sol_cc = cc
-            d += deg_to_rad(0.01)
-        phi0 += deg_to_rad(0.05)
+            d += deg_to_rad(0.005)
+        phi0 += deg_to_rad(0.005)
+    print('altération linéaire :', min_altlin_moy, 'mm/km')
     return sol_cc
 
-def projeter(cc, lambd, phi):
-    return cc.proj_to_CC(lambd, phi)
 
-
-if __name__ == '__main__':
-    points = lecture(filename_gps)
-    pr = choix_proj_cc(points)
-    print('Paramètres de la projection conique conforme minimisant le module linéaire:\n','Phi0:',rad_to_deg(pr.phi0),'\n','Phi1:',rad_to_deg(pr.phi1),'\n','Phi2:',\
-          rad_to_deg(pr.phi2),'\n','X0 :',pr.X0,'Y0 :',pr.Y0,'\n', "ellipsoide de référence WGS 84")
-
+def affiche(lst_points, cc):
+    """
+    affiche la carte 
+    :param lst_points: liste d'objets Point
+    :param cc: projection conique conforme
+    :return:
+    """
     points_proj = []
-    for p in points:
-        points_proj.append(projeter(pr, p.lon, p.lat))
+    for p in lst_points:
+        points_proj.append(cc.proj_to_CC(p.lon, p.lat))
 
-    x_cc=[]
-    y_cc=[]
+    x_cc = []
+    y_cc = []
 
     for p in points_proj:
         x_cc.append(p[0])
@@ -136,4 +176,15 @@ if __name__ == '__main__':
     plt.axis('equal')
     plt.title('Points GPS représentés dans la projection conique conforme optimale')
     plt.show()
+
+
+if __name__ == '__main__':
+    points = lecture("resultats.csv")
+    pr = choix_proj_cc(points)
+
+    print('Paramètres de la projection conique conforme minimisant le module linéaire:\n', 'Phi0 =', \
+          rad_to_deg(pr.phi0), '\n', 'Phi1 =', rad_to_deg(pr.phi1), '\n', 'Phi2 =', rad_to_deg(pr.phi2), \
+          '\n', 'X0 :', pr.X0, 'Y0 :', pr.Y0, '\n', "ellipsoide de référence WGS 84")
+
+    affiche(points, pr)
 
