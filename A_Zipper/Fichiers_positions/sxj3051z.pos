@@ -1,0 +1,24 @@
+% program   : RTKPOST-QT ver.2.4.3 b27
+% inp file  : /home/prof/Documents/Geodesie-projet/RTKPOST_051/GPS/sxj3051z.18o
+% inp file  : /home/prof/Documents/Geodesie-projet/RTKPOST_051/GPS/sxj0051z.18o
+% inp file  : /home/prof/Documents/Geodesie-projet/RTKPOST_051/GPS/brdc051z.18n
+% obs start : 2018/02/20 08:00:00.0 GPST (week1989 201600.0s)
+% obs end   : 2018/02/20 16:59:30.0 GPST (week1989 233970.0s)
+% pos mode  : static
+% freqs     : L1+L2
+% solution  : forward
+% elev mask : 15.0 deg
+% dynamics  : off
+% tidecorr  : off
+% ionos opt : broadcast
+% tropo opt : saastamoinen
+% ephemeris : broadcast
+% amb res   : continuous
+% val thres : 3.0
+% antenna1  : TRM55971.00     NONE  ( 0.0000  0.0000  1.2400)
+% antenna2  : TRM55971.00     NONE  ( 0.0000  0.0000  1.2000)
+% ref pos   :  4195020.7467    218423.4470   4783653.8893
+%
+% (x/y/z-ecef=WGS84,Q=1:fix,2:float,3:sbas,4:dgps,5:single,6:ppp,ns=# of satellites)
+%  GPST                      x-ecef(m)      y-ecef(m)      z-ecef(m)   Q  ns   sdx(m)   sdy(m)   sdz(m)  sdxy(m)  sdyz(m)  sdzx(m) age(s)  ratio
+2018/02/20 08:00:00.000   4217169.0735    207943.8432   4764693.9898   1   8   0.0006   0.0004   0.0005  -0.0002   0.0001   0.0003   0.00   15.7
