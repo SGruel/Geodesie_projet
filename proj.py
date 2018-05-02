@@ -179,7 +179,7 @@ def affiche(lst_points, cc):
 
 
 if __name__ == '__main__':
-    points = lecture("resultats.csv")
+    points = lecture("Resultats/resultats.csv")
     pr = choix_proj_cc(points)
 
     print('Paramètres de la projection conique conforme minimisant le module linéaire:\n', 'Phi0 =', \
