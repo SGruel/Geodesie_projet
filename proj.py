@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 """
 
-filename_gps = 'resultats.csv'
+filename_gps = '/Resultat/resultats.csv'
 
 ellip_WGS84 = ellipsoide.Ellipsoide('WGS84', 6378137.0, 6356752.314)
 # memes X0 et Y0 que le Lambert Zone... a modifier
@@ -46,7 +46,7 @@ def lecture(filename):
             lon,lat,alt = coo_ECEF_to_LLA(float(l[1]), float(l[2]), float(l[3][:-1]))
 
             points.append(Point(l[0], lon, lat, alt)) #modifier selon format
-            points[-1].save('coo_lat_lon.csv')
+            points[-1].save('Resultats/coo_lat_lon.csv')
 
     return points
 

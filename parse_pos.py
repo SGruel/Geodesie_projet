@@ -28,6 +28,8 @@ class Pos():
     def __init__(self, filename):
         self.name = filename[:-4]
         data = self.parse()
+        for i in data :
+            i=float(i)
         #XYZ de la ref pos
         self.X_o = data[0]
         self.Y_o = data[1]
@@ -135,10 +137,10 @@ def recup_pos():
     lst_pos_f = [] #liste des fichiers .pos
     lst_Pos = [] #liste d'objets Pos
     lst_pos_ord = [] #liste des fichiers .oos ordonnee
-
+    path =os.path
     
     #Recuperation des fichiers .pos et du fichier txt de cheminement
-    for element in os.listdir():
+    for element in os.listdir(path+'//Fichiers_positions'):
         if element.endswith('.pos'):
             lst_pos_f.append(element)
         if element.endswith('chem.txt'):
@@ -157,6 +159,6 @@ def recup_pos():
         lst_Pos.append(pos)
         
     for p in lst_Pos:
-        p.add_to_file('coo_r.csv')
+        p.add_to_file('/Resultats/coo_r.csv')
         print(p)
     return lst_Pos

@@ -22,67 +22,120 @@ import parse_pos
 
 # Création des matrices
 def matrice_B(list_pos):
-    mat_basline = np.zeros((len(list_pos) + 24, 1))
+    """
+    Créé la matrice contenant les lignes de bases.
+    :param list_pos: liste d'objet Station venant de parse_pos
+    :return: Matrice d'observation en colonne avec les lignes de base dans l'ordre suivi des coordonnées des stations du RGP
+    """
+    mat_basline = np.zeros((len(list_pos) * 3 + 12, 1))
     j = 0
+    k = 0
     for i in range(len(list_pos)):
-        mat_basline[i] = list_pos[i].X - list_pos[i].X_o
-        mat_basline[i + 1] = list_pos[i].Y - list_pos[i].Y_o
-        mat_basline[i + 2] = list_pos[i].Z - list_pos[i].Z_o
-        if list_pos[i].parent:
-            mat_basline[-24 + j] = list_pos[i].X_o
+        #ajout des lignes de bases par groupes de trois X,Y,Z
+        mat_basline[k] = float(list_pos[i].X) - float(list_pos[i].X_o)
+        mat_basline[k + 1] = float(list_pos[i].Y) - float(list_pos[i].Y_o)
+        mat_basline[k + 2] = float(list_pos[i].Z) - float(list_pos[i].Z_o)
+        k += 3
+        if list_pos[i].parent and j < 12:
+            #ajout en fin de matrice des coordonnées du RGP
+            mat_basline[-12 + j] = float(list_pos[i].X_o)
             j += 1
-            mat_basline[-24 + j] = list_pos[i].Y_o
+            mat_basline[-12 + j] = float(list_pos[i].Y_o)
             j += 1
-            mat_basline[-24 + j] = list_pos[i].Z_o
+            mat_basline[-12 + j] = float(list_pos[i].Z_o)
             j += 1
     return mat_basline
 
 
 def matrice_A(list_pos):
-    mat = np.identity(len(list_pos) + 24)
-    j = 0
-    for i in range(list_pos):
-        if list_pos[i].parent:
-            mat[i, -24 + j] = -1
-            j += 1
-            mat[i + 1, -24 + j] = -1
-            j += 1
-            mat[i + 2, -24 + j] = -1
-            j += 1
-        else:
-            mat[i, i - 3] = -1
-            mat[i + 1, i - 2] = -1
-            mat[i + 2, i - 1] = -1
+    """
+    Créé la matrice des paramètres du problème AX+V =B  les premières lignes correspondent au calculs des lignes de bases,
+    les 12 dernières lignes sont un bloc Identité correspondant au stations du RGP.
+    :param list_pos: listes des postions dans l'ordre du cheminement
+    :return: matrice A
+    """
+    mat = np.zeros((len(list_pos) * 3 + 12, 18 * 3))
+    # stations du RGP
+    for i in range(-12, 0):
+        mat[i, i] = 1
+
+    #Calcul des lignes de bases
+    for i in range(-12, 0):
+        mat[i, i] = 1
+    for i in range(3):
+        mat[i, i] = 1
+        mat[i + 3, i] = 1
+        mat[i + 24, i + 18] = 1
+        mat[i + 27, i + 18] = 1
+        mat[i + 30, i + 21] = 1
+        mat[i + 33, i + 21] = 1
+        mat[i + 54, i + 39] = 1
+        mat[i + 57, i + 39] = 1
+        mat[i, -12 + i] = -1
+        mat[i + 3, -12 + 3 + i] = -1
+        mat[i + 24, -12 + 6 + i] = -1
+        mat[i + 27, i - 12 + 9] = -1
+        mat[i + 30, i - 12] = -1
+        mat[i + 33, i - 12 + 3] = -1
+        mat[i + 54, i - 12 + 6] = -1
+        mat[i + 57, i - 12 + 9] = -1
+    for i in range(18):
+        mat[i + 6, i + 3] = 1
+        mat[i + 6, i] = -1
+        mat[i + 36, i + 24] = 1
+        mat[i + 36, i + 21] = -1
+
     return mat
 
 
 def matrice_cov(list_pos):
-    mat = np.zeros((len(list_pos + 24), len(list_pos + 24)))
-    for i in range(list_pos):
-        mat[i, i] = list_pos[i].sdx ** 2
-        mat[i + 1, i + 1] = list_pos[i].sdy ** 2
-        mat[i + 2, i + 2] = list_pos[i].sdz ** 2
-        mat[i, i + 1] = list_pos[i].sdxy ** 2
-        mat[i + 1, i] = list_pos[i].sdxy ** 2
-        if list_pos[i].sdxy < 0:
-            mat[i, i + 1] = -list_pos[i].sdxy ** 2
-            mat[i + 1, i] = -list_pos[i].sdxy ** 2
-        mat[i + 1, i + 2] = list_pos[i].sdyz ** 2
-        mat[i + 2, i + 1] = list_pos[i].sdyz ** 2
-        if list_pos[i].sdyz < 0:
-            mat[i + 1, i + 2] = -list_pos[i].sdyz ** 2
-            mat[i + 2, i + 1] = -list_pos[i].sdyz ** 2
-        mat[i, i + 2] = list_pos[i].sdzx ** 2
-        mat[i + 2, i] = list_pos[i].sdzx ** 2
-        if list_pos[i].sdzx < 0:
-            mat[i, i + 2] = -list_pos[i].sdzx ** 2
-            mat[i + 2, i] = -list_pos[i].sdzx ** 2
-    for j in range(0, 24):
-        mat[-24 + j, -24 + j] = 0.01 ** 2
+    """
+    Calcule la matrice variance-covariance du problème. Il s'agit d'une matrice diagonale par bloc de trois sous la forme:
+    (varX covXY covX)
+    (covXY VarY covYZ)
+    (covXZ covYZ varZ)  dans le cas d'une ligne de base
+    (1cm² 0   0 )
+    ( 0  1cm² 0 )
+    ( 0   0  1cm²) dans le cas d'un station du RGP
+
+    :param list_pos:
+    :return:
+    """
+    mat = np.zeros((len(list_pos) * 3 + 12, len(list_pos) * 3 + 12))
+    k = 0
+    for i in range(len(list_pos)):
+        mat[k, k] = float(list_pos[i].sdx) ** 2
+        mat[k + 1, k + 1] = float(list_pos[i].sdy) ** 2
+        mat[k + 2, k + 2] = float(list_pos[i].sdz) ** 2
+        mat[k, k + 1] = float(list_pos[i].sdxy) ** 2
+        mat[k + 1, k] = float(list_pos[i].sdxy) ** 2
+        if float(list_pos[i].sdxy) < 0:
+            mat[k, k + 1] = -float(list_pos[i].sdxy) ** 2
+            mat[k + 1, k] = -float(list_pos[i].sdxy) ** 2
+        mat[k + 1, k + 2] = float(list_pos[i].sdyz) ** 2
+        mat[k + 2, k + 1] = float(list_pos[i].sdyz) ** 2
+        if float(list_pos[i].sdyz) < 0:
+            mat[k + 1, k + 2] = -float(list_pos[i].sdyz) ** 2
+            mat[k + 2, k + 1] = -float(list_pos[i].sdyz) ** 2
+        mat[k, k + 2] = float(list_pos[i].sdzx) ** 2
+        mat[k + 2, k] = float(list_pos[i].sdzx) ** 2
+        if float(list_pos[i].sdzx) < 0:
+            mat[k, k + 2] = -float(list_pos[i].sdzx) ** 2
+            mat[k + 2, k] = -float(list_pos[i].sdzx) ** 2
+        k += 3
+    for j in range(0, 12):
+        mat[-12 + j, -12 + j] = 0.01 ** 2
     return mat
 
 
 def xchap(A, mat_cov, B):
+    """
+    Résoud les moindres carrés à partir des matrices calculées précédement  on a Xchap = (AtPA)^-1 * AtPB
+    :param A:
+    :param mat_cov:
+    :param B:
+    :return:
+    """
     P = np.linalg.inv(mat_cov)
     N = np.dot(np.transpose(A), np.dot(P, A))
     K = np.dot(np.transpose(A), np.dot(P, B))
@@ -91,29 +144,41 @@ def xchap(A, mat_cov, B):
 
 
 def Vnorm(A, mat_cov, B):
+    """
+    Calcul les résidus normalisés des moindres carrés et renvoie un affichage graphique permettant de vérifier si ceux ci suivent la loi du X²
+    :param A:
+    :param mat_cov:
+    :param B:
+    :return:
+    """
     Xchap = xchap(A, mat_cov, B)
     V = np.dot(A, Xchap) - B
     P = np.linalg.inv(mat_cov)
-    Vnorm = np.zeros((V.shape[0], V.shape[1]))
     N = np.dot(np.transpose(A), np.dot(P, A))
     Ninv = np.linalg.inv(N)
-    sigma = sigma2 = np.dot(np.transpose(V), np.dot(P, V)) / (
-        len(B) - len(A[1]))
+    sigma2 = np.dot(np.transpose(V), np.dot(P, V)) / (
+        len(B) - len(A[0]))
     Vnorm = np.zeros((V.shape[0], V.shape[1]))
     for i in range(len(V)):
-        Vnorm[i] = V[i] / np.sqrt(sigma2 * (1 / P[i][i] - np.dot(A[i], np.dot(Ninv, A[i].reshape((len(A[i]), 1))))))
-
-
+        Vnorm[i] = V[i] / (np.sqrt((sigma2)) * np.sqrt(mat_cov[i,i] - np.dot(A, np.dot(Ninv, np.transpose(A)))[i][i]))
     plt.figure(0)
-    plt.hist(Vnorm,"o")
+    plt.hist(Vnorm)
     plt.savefig("residus.jpg")
     plt.close()
 
 
-
 def MC(list_pos):
+    """
+    Fonction formalisant le calcul des moindres carrés et leur vérification
+    :param list_pos:
+    :return:
+    """
     A = matrice_A(list_pos)
     B = matrice_B(list_pos)
-    mat= matrice_cov(list_pos)
-    Vnorm(A,mat,B)
-    return(xchap(A,mat,B))
+    mat = matrice_cov(list_pos)
+    Vnorm(A, mat, B)
+    return (xchap(A, mat, B))
+
+
+
+
