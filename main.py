@@ -14,7 +14,7 @@ for i in range (len(list_pos)):
         j+=1
         list_pos[i].Z_mc = Xchap[j]
         j+=1
-        list_pos[i].add_to_file("Resultats/resultats.csv")
+        list_pos[i].add_to_file("resultats.csv")
 
 points = proj.lecture("resultats.csv")
 pr = proj.choix_proj_cc(points)

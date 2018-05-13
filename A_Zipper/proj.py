@@ -66,7 +66,6 @@ def lecture(filename):
             lon,lat,alt = coo_ECEF_to_LLA(float(l[1]), float(l[2]), float(l[3][:-1]))
 
             points.append(Point(l[0], lon, lat, alt)) #modifier selon format
-            points[-1].save('coo_lat_lon.csv')
 
     return points
 
@@ -125,7 +124,7 @@ def choix_proj_cc(lst_points):
     :return:
     """
     lat_min, lat_max = min_max(lst_points)
-    min_altlin_moy = 99999999999999999
+    min_altlin_moy = np.inf
     sol_cc = 0
 
     lst_proj_CC = []

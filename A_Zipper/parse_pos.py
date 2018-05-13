@@ -71,7 +71,7 @@ class Pos():
         parsing du .pos pour completer les champs de l'objet Pos
         """
         data = []
-        with open(str(self.name)+'.pos', 'r') as f:
+        with open('Fichiers_positions/'+str(self.name)+'.pos', 'r') as f:
             lines = f.readlines()
         
         for l in lines:
@@ -140,14 +140,13 @@ def recup_pos():
     path =os.path
     
     #Recuperation des fichiers .pos et du fichier txt de cheminement
-    for element in os.listdir(path+'//Fichiers_positions'):
+    for element in os.listdir('Fichiers_positions'):
         if element.endswith('.pos'):
             lst_pos_f.append(element)
         if element.endswith('chem.txt'):
             cheminement = element
-    print(cheminement)
     #parsing du fichier de cheminement
-    lst_o = parse_chem(cheminement)
+    lst_o = parse_chem('Fichiers_positions/'+str(cheminement))
 
     for e in lst_o:
         for f in lst_pos_f:
@@ -157,8 +156,5 @@ def recup_pos():
     for p in lst_pos_ord:
         pos = Pos(p)
         lst_Pos.append(pos)
-        
-    for p in lst_Pos:
-        p.add_to_file('/Resultats/coo_r.csv')
-        print(p)
+
     return lst_Pos

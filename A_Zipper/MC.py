@@ -163,7 +163,7 @@ def Vnorm(A, mat_cov, B):
         Vnorm[i] = V[i] / (np.sqrt((sigma2)) * np.sqrt(mat_cov[i,i] - np.dot(A, np.dot(Ninv, np.transpose(A)))[i][i]))
     plt.figure(0)
     plt.hist(Vnorm)
-    plt.savefig("residus.jpg")
+    plt.savefig("residus.png")
     plt.close()
 
 
